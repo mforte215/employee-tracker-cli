@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
 
+//open connection to DB
 const db = mysql.createConnection(
     {
         host: 'localhost',
@@ -8,16 +9,10 @@ const db = mysql.createConnection(
         password: 'r00tr00t!',
         database: 'employee_tracker_db'
     },
-    console.log(`Connected to the classlist_db database.`)
+    console.log(`Connected to the database.`)
 );
 
-/* db.query('SELECT * FROM students', function (err, results) {
-    console.log(results);
-});
- */
-
-let isActive = true;
-let departmentData = [];
+//retrieve department info from DB
 const showDepartments = () => {
     db.query('SELECT * FROM department', function (err, results) {
         if (err) {
@@ -28,12 +23,7 @@ const showDepartments = () => {
     })
 }
 
-const setDepartments = (results) => {
-    console.log("Logging data in get departments");
-    console.log(results);
-    departmentData = results;
-}
-
+//retrieve role info from DB
 const showRoles = () => {
     db.query(`SELECT role.title, role.salary, department.name as 'department name' FROM role JOIN department ON role.department_id=department.id;`, function (err, results) {
         if (err) {
@@ -43,7 +33,7 @@ const showRoles = () => {
         displayMenu();
     })
 }
-
+//retrieve employee info from DB
 const showEmployees = () => {
     db.query(`SELECT T1.first_name as 'first name', T1.last_name as 'last name', T3.title AS 'job title', CONCAT('$', FORMAT(T3.salary,2,'en_us')) AS salary, CONCAT(T2.first_name, ' ', T2.last_name) AS manager FROM employee_tracker_db.employee as T1 LEFT JOIN employee_tracker_db.employee as T2 ON T1.manager_id = T2.id INNER JOIN employee_tracker_db.role as T3 ON T1.role_id = T3.id;`, function (err, results) {
         if (err) {
@@ -54,7 +44,7 @@ const showEmployees = () => {
         displayMenu();
     })
 }
-
+//add department to DB
 const addDepartment = () => {
     let newDepartmentName;
 
@@ -77,7 +67,7 @@ const addDepartment = () => {
 
 
 }
-
+//add role to DB
 const addRole = () => {
     let newTitle;
     let newSalary;
@@ -135,7 +125,7 @@ const addRole = () => {
 
 
 }
-
+//add employee to DB
 const addEmployee = () => {
     let firstName = '';
     let lastName = '';
@@ -215,7 +205,7 @@ const addEmployee = () => {
     })
 }
 
-
+//update employee role
 const updateEmployeeRole = () => {
     //retrieve employees from DB
     db.query(`SELECT T1.id, T1.first_name, T1.last_name, T2.title FROM employee_tracker_db.employee as T1 JOIN employee_tracker_db.role as T2 ON T1.role_id = T2.id;`, function (err, result) {
@@ -256,9 +246,12 @@ const updateEmployeeRole = () => {
                     }
                     let role_choice_array = [];
                     for (let k = 0; k < result2.length; k++) {
-                        role_choice_array.push(`${result2[k].id}. ${result2[k].title} - ${result2[k].department}`)
+                        role_choice_array.push({
+                            name: `${result2[k].id}. ${result2[k].title} - ${result2[k].department}`,
+                            value: result2[k].id
+                        }
+                        )
                     }
-
                     inquirer
                         .prompt([
                             {
@@ -268,21 +261,24 @@ const updateEmployeeRole = () => {
                                 choices: role_choice_array,
                             },
                         ]).then((answers) => {
-                            console.log(answers);
+                            console.log('Employee to Update:')
+                            console.log(foundEmployeeID);
+                            console.log('New Role to update to:');
+                            console.log(answers.newRole);
+
+                            //update the picked user with the picked role.
+                            db.query(`UPDATE employee_tracker_db.employee SET employee.role_id = ? WHERE employee.id = ?;
+                            `, [answers.newRole, foundEmployeeID], function (err3, result3) {
+                                if (err3) {
+                                    console.error(err3);
+                                }
+
+                                console.log('UPDATED EMPLOYEE SUCCESSFULLY');
+                                displayMenu();
+                            })
                         })
-
-
-
                 })
-
-
-
             })
-
-
-
-
-
     })
 
 
@@ -353,7 +349,7 @@ const displayMenu = () => {
             console.error(err);
         });
 }
-
+//Start CLI
 function init() {
 
     console.log(`***************************************`);
