@@ -78,8 +78,6 @@ const addRole = () => {
         if (err) {
             console.error(err);
         }
-        console.log("Logging Results");
-        console.log(results);
         //create choices array with result data;
         let choice_Array = [];
         for (let i = 0; i < results.length; i++) {
@@ -229,8 +227,6 @@ const updateEmployeeRole = () => {
             ]).then((answers) => {
 
 
-                console.log('Employee to update:')
-                console.log(answers.currentEmployee);
                 //get ID
                 let foundEmployeeID;
                 for (let j = 0; j < result.length; j++) {
@@ -261,10 +257,6 @@ const updateEmployeeRole = () => {
                                 choices: role_choice_array,
                             },
                         ]).then((answers) => {
-                            console.log('Employee to Update:')
-                            console.log(foundEmployeeID);
-                            console.log('New Role to update to:');
-                            console.log(answers.newRole);
 
                             //update the picked user with the picked role.
                             db.query(`UPDATE employee_tracker_db.employee SET employee.role_id = ? WHERE employee.id = ?;
